@@ -14,8 +14,8 @@ func main() {
 	file, _ := os.Open("input.txt")
 	defer file.Close()
 
-	array1 := []int{}
-	array2 := []int{}
+	var array1 []int
+	var array2 []int
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -32,10 +32,21 @@ func main() {
 	sort.Ints(array1)
 	sort.Ints(array2)
 
-	total := 0.0
+	question1 := 0.0
 	for i := 0; i < len(array1); i++ {
-		total += math.Abs(float64(array1[i]) - float64(array2[i]))
+		question1 += math.Abs(float64(array1[i]) - float64(array2[i]))
 	}
 
-	fmt.Println("Question 1:", int(total))
+	dict := make(map[int]int)
+	for _, num := range array2 {
+		dict[num] = dict[num] + 1
+	}
+
+	question2 := 0
+	for _, num := range array1 {
+		question2 += num * dict[num]
+	}
+
+	fmt.Println("Question 1:", int(question1))
+	fmt.Println("Question 2:", question2)
 }

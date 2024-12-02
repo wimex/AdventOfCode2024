@@ -29,44 +29,76 @@ func main() {
 	}
 
 	var question1 []bool
+	var question2 []bool
 	for _, line := range lines {
-		direction := 0
-		valid := true
+		valid := validate(line)
+		question1 = append(question1, valid)
 
-		for i := 0; i < len(line)-1; i++ {
-			num1 := line[i]
-			num2 := line[i+1]
-			diff := math.Abs(float64(num1) - float64(num2))
-			dire := func() int {
-				if num1 == num2 {
-					return 0
+		if !valid {
+			for i := 0; i < len(line); i++ {
+				temp := make([]int, len(line))
+				copy(temp, line)
+
+				temp = append(temp[:i], temp[i+1:]...)
+				if validate(temp) {
+					valid = true
+					break
 				}
-				if num1 > num2 {
-					return -1
-				}
-				return 1
-			}()
-
-			if diff < 1 || diff > 3 {
-				valid = false
-				break
-			}
-
-			if direction == 0 {
-				direction = dire
-				continue
-			}
-
-			if direction != dire {
-				valid = false
-				break
 			}
 		}
 
-		if valid {
-			question1 = append(question1, valid)
+		question2 = append(question2, valid)
+	}
+
+	println("Question 1:", filter(question1))
+	println("Question 2:", filter(question2))
+}
+
+func filter(lines []bool) int {
+	result := 0
+	for _, line := range lines {
+		if line {
+			result++
 		}
 	}
 
-	println("Question 1:", len(question1))
+	return result
+}
+
+func validate(numbers []int) bool {
+	step := 0
+
+	for i := 0; i < len(numbers)-1; i++ {
+		num1 := numbers[i]
+		num2 := numbers[i+1]
+		diff := math.Abs(float64(num1) - float64(num2))
+		dire := direction(num1, num2)
+
+		if diff < 1 || diff > 3 {
+			return false
+		}
+
+		if step == 0 {
+			step = dire
+			continue
+		}
+
+		if step != dire {
+			return false
+		}
+	}
+
+	return true
+}
+
+func direction(num1, num2 int) int {
+	if num1 == num2 {
+		return 0
+	}
+
+	if num1 > num2 {
+		return -1
+	}
+
+	return 1
 }

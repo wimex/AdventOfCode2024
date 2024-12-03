@@ -19,30 +19,33 @@ func main() {
 	var instructions = make([][]int, 0)
 
 	scanner := bufio.NewScanner(file)
+	concat := ""
 	for scanner.Scan() {
 		line := scanner.Text()
-		muls := regex_muls.FindAllStringSubmatch(line, -1)
-		muli := regex_muls.FindAllStringSubmatchIndex(line, -1)
+		concat += line
+	}
 
-		dos := regex_dos.FindAllStringSubmatch(line, -1)
-		doi := regex_dos.FindAllStringSubmatchIndex(line, -1)
+	muls := regex_muls.FindAllStringSubmatch(concat, -1)
+	muli := regex_muls.FindAllStringSubmatchIndex(concat, -1)
 
-		donts := regex_donts.FindAllStringSubmatch(line, -1)
-		donti := regex_donts.FindAllStringSubmatchIndex(line, -1)
+	dos := regex_dos.FindAllStringSubmatch(concat, -1)
+	doi := regex_dos.FindAllStringSubmatchIndex(concat, -1)
 
-		for index, match := range muls {
-			num1, _ := strconv.Atoi(match[1])
-			num2, _ := strconv.Atoi(match[2])
-			instructions = append(instructions, []int{muli[index][0], 0, num1, num2})
-		}
+	donts := regex_donts.FindAllStringSubmatch(concat, -1)
+	donti := regex_donts.FindAllStringSubmatchIndex(concat, -1)
 
-		for index, _ := range dos {
-			instructions = append(instructions, []int{doi[index][0], 1, 0, 0})
-		}
+	for index, match := range muls {
+		num1, _ := strconv.Atoi(match[1])
+		num2, _ := strconv.Atoi(match[2])
+		instructions = append(instructions, []int{muli[index][0], 0, num1, num2})
+	}
 
-		for index, _ := range donts {
-			instructions = append(instructions, []int{donti[index][0], 2, 0, 0})
-		}
+	for index, _ := range dos {
+		instructions = append(instructions, []int{doi[index][0], 1, 0, 0})
+	}
+
+	for index, _ := range donts {
+		instructions = append(instructions, []int{donti[index][0], 2, 0, 0})
 	}
 
 	sort.Slice(instructions, func(i, j int) bool {

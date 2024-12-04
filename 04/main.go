@@ -46,7 +46,7 @@ func main() {
 			m3 := search(i, j, 0, -1, 1, "AM", field) + search(i, j, 0, 1, -1, "AS", field) //MAS or
 			m4 := search(i, j, 0, -1, 1, "AS", field) + search(i, j, 0, 1, -1, "AM", field) //SAM (right to left)
 
-			if m1+m2 == 2 && m3+m4 == 2 {
+			if (m1 == 2 || m2 == 2) && (m3 == 2 || m4 == 2) {
 				question2++
 			}
 		}

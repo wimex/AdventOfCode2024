@@ -23,7 +23,7 @@ func main() {
 	}
 
 	question1 := 0
-	/*for i := 0; i < len(field); i++ {
+	for i := 0; i < len(field); i++ {
 		for j := 0; j < len(field[i]); j++ {
 			question1 += search(i, j, 0, -1, 0, "XMAS", field)  // up
 			question1 += search(i, j, 0, -1, 1, "XMAS", field)  // up right
@@ -34,7 +34,7 @@ func main() {
 			question1 += search(i, j, 0, 0, -1, "XMAS", field)  // left
 			question1 += search(i, j, 0, -1, -1, "XMAS", field) // up left
 		}
-	}*/
+	}
 
 	//Two MAS in the shape of an X
 	question2 := 0

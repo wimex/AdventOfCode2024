@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 )
@@ -30,7 +29,7 @@ func main() {
 	}
 
 	steps := make([][]int, 0)
-	//steps = append(steps, []int{guard[0], guard[1]})
+	steps = append(steps, []int{guard[0], guard[1]})
 
 	direction := []int{-1, 0}
 	for true {
@@ -65,7 +64,6 @@ func main() {
 	}
 
 	println("Question 1:", len(distinct))
-	fmt.Println(steps)
 }
 
 func turn(direction []int) ([]int, error) {

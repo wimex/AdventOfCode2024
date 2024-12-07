@@ -113,19 +113,3 @@ func evaluate(expected int64, left int64, numbers []int64, operands map[string]f
 
 	return false, combiner
 }
-
-func getPivot(operand string, left int64) int64 {
-	if left != -1 {
-		return left
-	}
-
-	if operand == "+" {
-		return 0
-	}
-
-	if operand == "*" {
-		return 1
-	}
-
-	return -1
-}

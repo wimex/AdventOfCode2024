@@ -53,11 +53,12 @@ func main() {
 
 	question1 := int64(0)
 	for test, numbers := range values {
-		result, ops := evaluate(test, -1, numbers, []string{})
+		result, ops := evaluate(test, numbers[0], numbers[1:], []string{})
 		if result {
-			fmt.Println("Found:", test)
-			fmt.Println("Ops:", ops)
-
+			fmt.Println("NUM:", test)
+			fmt.Println("TST:", numbers)
+			fmt.Println("OPS:", ops)
+			fmt.Println("")
 			question1 += test
 		}
 	}
@@ -75,9 +76,8 @@ func evaluate(expected int64, left int64, numbers []int64, combiner []string) (b
 
 	for operand, function := range operands {
 		current := numbers[0]
-		pivot := getPivot(operand, left)
-		result := function(pivot, current)
-		if result == expected {
+		result := function(left, current)
+		if result == expected && len(numbers) == 1 {
 			return true, append(combiner, operand)
 		}
 

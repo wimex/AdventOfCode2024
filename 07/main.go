@@ -8,10 +8,26 @@ import (
 	"strings"
 )
 
-var cache = make(map[string]int64)
-var operands = map[string]func(int64, int64) int64{
+var operands1 = map[string]func(int64, int64) int64{
 	"+": func(a, b int64) int64 { return a + b },
 	"*": func(a, b int64) int64 { return a * b },
+}
+
+var operands2 = map[string]func(int64, int64) int64{
+	"+": func(a, b int64) int64 { return a + b },
+	"*": func(a, b int64) int64 { return a * b },
+	"|": func(a, b int64) int64 {
+		val1 := strconv.FormatInt(a, 10)
+		val2 := strconv.FormatInt(b, 10)
+
+		res, err := strconv.ParseInt(val1+val2, 10, 64)
+		if err != nil {
+			fmt.Println("Failed to convert to int64: ", val1, val2)
+			return -1
+		}
+
+		return res
+	},
 }
 
 func main() {
@@ -51,22 +67,30 @@ func main() {
 		values[left] = numbers
 	}
 
-	question1 := int64(0)
+	question1 := execute(values, operands1)
+	question2 := execute(values, operands2)
+
+	fmt.Println("Question 1: ", question1)
+	fmt.Println("Question 2: ", question2)
+}
+
+func execute(values map[int64][]int64, operands map[string]func(int64, int64) int64) int64 {
+	result := int64(0)
 	for test, numbers := range values {
-		result, ops := evaluate(test, numbers[0], numbers[1:], []string{})
-		if result {
+		eval, ops := evaluate(test, numbers[0], numbers[1:], operands, []string{})
+		if eval {
 			fmt.Println("NUM:", test)
 			fmt.Println("TST:", numbers)
 			fmt.Println("OPS:", ops)
 			fmt.Println("")
-			question1 += test
+			result += test
 		}
 	}
 
-	fmt.Println("Question 1: ", question1)
+	return result
 }
 
-func evaluate(expected int64, left int64, numbers []int64, combiner []string) (bool, []string) {
+func evaluate(expected int64, left int64, numbers []int64, operands map[string]func(int64, int64) int64, combiner []string) (bool, []string) {
 	if len(numbers) == 0 {
 		return false, combiner
 	}
@@ -81,7 +105,7 @@ func evaluate(expected int64, left int64, numbers []int64, combiner []string) (b
 			return true, append(combiner, operand)
 		}
 
-		recursion, rr := evaluate(expected, result, numbers[1:], append(combiner, operand))
+		recursion, rr := evaluate(expected, result, numbers[1:], operands, append(combiner, operand))
 		if recursion {
 			return true, rr
 		}

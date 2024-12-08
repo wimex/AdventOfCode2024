@@ -33,7 +33,6 @@ func main() {
 			}
 
 			coords[t] = append(coords[t], coord{x, height})
-			width = x
 		}
 
 		height++
@@ -47,25 +46,23 @@ func main() {
 			slope := getSlope(c[0], c[1])
 
 			lx := c[0].x - distance.x
-			ly := int(float64(c[0].y) - (slope * float64(distance.x)))
+			ly := float64(c[0].y) - (slope * float64(distance.x))
 
 			rx := c[1].x + distance.x
-			ry := int(float64(c[1].y) + (slope * float64(distance.x)))
+			ry := float64(c[1].y) + (slope * float64(distance.x))
 
-			if lx >= 0 && lx < width && ly >= 0 && ly < height && !slices.Contains(antinodes, coord{lx, ly}) {
-				antinodes = append(antinodes, coord{lx, ly})
+			if ly != float64(int(ly)) || ry != float64(int(ry)) {
+				fmt.Println("Not an integer")
+				return
 			}
 
-			if rx >= 0 && rx < width && ry >= 0 && ry < height && !slices.Contains(antinodes, coord{rx, ry}) {
-				antinodes = append(antinodes, coord{rx, ry})
+			if lx >= 0 && lx < width && ly >= 0 && int(ly) < height && !slices.Contains(antinodes, coord{lx, int(ly)}) {
+				antinodes = append(antinodes, coord{lx, int(ly)})
 			}
 
-			//x := c[0].y - m*c[0].x
-			//y := c[0].x - m*c[0].y
-			//slope := float64(distance.y) / float64(distance.x)
-			//antinode1 := coord{c[0].x + distance.x, c[0].y + distance.y}
-			//antinode2 := coord{c[1].x + distance.x, c[1].y + distance.y}
-			//fmt.Println(k, lx, ly, rx, ry)
+			if rx >= 0 && rx < width && ry >= 0 && int(ry) < height && !slices.Contains(antinodes, coord{rx, int(ry)}) {
+				antinodes = append(antinodes, coord{rx, int(ry)})
+			}
 		}
 	}
 
@@ -89,6 +86,7 @@ func main() {
 		fmt.Println()
 	}
 
+	fmt.Println()
 	fmt.Println("Question 1:", len(antinodes))
 }
 

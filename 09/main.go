@@ -20,40 +20,34 @@ func main() {
 	scanner.Scan()
 
 	line := scanner.Text()
-	files := []string{}
+	files := []int{}
 	ident := 0
 	for index, value := range line {
 		length, _ := strconv.Atoi(string(value))
 		for i := 0; i < length; i++ {
 			if index%2 == 0 {
-				data := strconv.Itoa(ident)
-				files = append(files, data)
+				files = append(files, ident)
 			} else {
-				data := "."
-				files = append(files, data)
+				files = append(files, -1)
 			}
 		}
 
 		if index%2 == 0 {
-			if ident == 9 {
-				ident = 0
-			} else {
-				ident++
-			}
+			ident++
 		}
 	}
 
 	free := 0
-	for head := len(files) - 1; free <= head; head-- {
-		if files[head] != "." {
-			for files[free] != "." {
+	for head := len(files) - 1; head >= 0; head-- {
+		if files[head] != -1 {
+			for files[free] != -1 {
 				free++
 			}
 
-			files[free] = files[head]
-			files[head] = "."
-
-			free++
+			if free < head {
+				files[free] = files[head]
+				files[head] = -1
+			}
 		}
 	}
 
@@ -61,15 +55,14 @@ func main() {
 	fmt.Println("Question 1:", checksum(files))
 }
 
-func checksum(files []string) int {
+func checksum(files []int) int {
 	result := 0
 	for index, value := range files {
-		if value == "." {
+		if value == -1 {
 			continue
 		}
 
-		ident, _ := strconv.Atoi(value)
-		result += ident * index
+		result += value * index
 	}
 
 	return result

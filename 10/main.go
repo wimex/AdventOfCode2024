@@ -32,20 +32,24 @@ func main() {
 	}
 
 	question1 := [][]coord{}
+	question2 := [][]coord{}
 	for j := 0; j < len(coords); j++ {
 		for i := 0; i < len(coords[j]); i++ {
 			if coords[j][i] != 0 {
 				continue
 			}
 
-			score, valid := hike(coords, coord{i, j}, 0)
+			paths, valid := hike(coords, coord{i, j}, 0)
+			unique := lo.Uniq(paths)
 			if valid {
-				question1 = append(question1, score)
+				question1 = append(question1, unique)
+				question2 = append(question2, paths)
 			}
 		}
 	}
 
 	fmt.Println("Question 1:", lo.SumBy(question1, func(c []coord) int { return len(c) }))
+	fmt.Println("Question 2:", lo.SumBy(question2, func(c []coord) int { return len(c) }))
 }
 
 func hike(coords [][]int, position coord, height int) ([]coord, bool) {
@@ -80,5 +84,5 @@ func hike(coords [][]int, position coord, height int) ([]coord, bool) {
 		scores = append(scores, score4...)
 	}
 
-	return lo.Uniq(scores), true
+	return scores, true
 }

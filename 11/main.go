@@ -3,17 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/samber/lo"
 	"math/big"
 	"os"
 	"strconv"
 	"strings"
 )
 
-type coord struct {
-	x int
-	y int
-}
+var CACHE = map[string]int{}
 
 func main() {
 	file, _ := os.Open("input.txt")
@@ -31,31 +27,40 @@ func main() {
 		}
 	}
 
-	history := [][]*big.Int{}
-	step := stones
-	for i := 0; i < 25; i++ {
-		step = blink(step)
-		history = append(history, step)
-		fmt.Println("Step", i, ":", lo.Map(step, func(s *big.Int, _ int) string { return s.String() }))
+	length1 := 0
+	length2 := 0
+	for _, stone := range stones {
+		length1 += blink(stone, 25)
+		length2 += blink(stone, 75)
 	}
 
-	fmt.Println("Question 1:", len(step))
+	fmt.Println("Question 1:", length1)
+	fmt.Println("Question 2:", length2)
 }
 
-func blink(stones []*big.Int) []*big.Int {
-	results := []*big.Int{}
-
-	for _, stone := range stones {
-		result := apply(stone)
-		results = append(results, result...)
+func blink(stone *big.Int, steps int) int {
+	cache := "L" + stone.String() + "S" + strconv.Itoa(steps)
+	if cached, ok := CACHE[cache]; ok {
+		return cached
 	}
 
-	return results
+	next := apply(stone)
+	result := 0
+	for _, expanded := range next {
+		if steps == 1 {
+			result++
+		} else {
+			result += blink(expanded, steps-1)
+		}
+	}
+
+	CACHE[cache] = result
+
+	return result
 }
 
 var ZERO = big.NewInt(0)
 var ONE = big.NewInt(1)
-var TWO = big.NewInt(2)
 var TTF = big.NewInt(2024)
 
 func apply(stone *big.Int) []*big.Int {
@@ -75,12 +80,6 @@ func apply(stone *big.Int) []*big.Int {
 
 		return []*big.Int{num1, num2}
 	}
-
-	/*res, _ := stone.DivMod(stone, TWO, new(big.Int))
-	if res == ZERO {
-		copy := new(big.Int).Set(res)
-		return []*big.Int{copy}
-	}*/
 
 	multiply := clone.Mul(clone, TTF)
 	return []*big.Int{multiply}

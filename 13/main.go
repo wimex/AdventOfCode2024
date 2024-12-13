@@ -25,7 +25,7 @@ func main() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-	machines := make([]Machine, 0)
+	machines1 := make([]Machine, 0)
 	for scanner.Scan() {
 		line1 := scanner.Text()
 		scanner.Scan()
@@ -53,28 +53,52 @@ func main() {
 				new(big.Int).SetInt64(int64(ty))},
 		}
 
-		machines = append(machines, machine)
+		machines1 = append(machines1, machine)
 		scanner.Text() //Throw away empty line
 	}
 
+	machines2 := make([]Machine, 0)
+	for _, machine := range machines1 {
+		tx := new(big.Int).Set(machine.prize.x)
+		tx.Add(tx, new(big.Int).SetInt64(int64(10000000000000)))
+
+		ty := new(big.Int).Set(machine.prize.y)
+		ty.Add(ty, new(big.Int).SetInt64(int64(10000000000000)))
+
+		machines2 = append(machines2, Machine{
+			Coordinate{
+				new(big.Int).Set(machine.button1.x),
+				new(big.Int).Set(machine.button1.y)},
+			Coordinate{
+				new(big.Int).Set(machine.button2.x),
+				new(big.Int).Set(machine.button2.y)},
+			Coordinate{
+				new(big.Int).Set(tx),
+				new(big.Int).Set(ty)},
+		})
+	}
+
 	question1 := new(big.Int).SetInt64(0)
-	for _, machine := range machines {
-		//fmt.Println(machine)
-		result := simulate(machine)
-		question1.Add(question1, result)
+	question2 := new(big.Int).SetInt64(0)
+	for i := 0; i < len(machines1); i++ {
+		result1 := simulate(machines1[i])
+		result2 := simulate(machines2[i])
+		question1.Add(question1, result1)
+		question2.Add(question2, result2)
 	}
 
 	fmt.Println("Question 1:", question1)
+	fmt.Println("Question 2:", question2)
 }
 
 func simulate(machine Machine) *big.Int {
 	result := step(machine)
-	//minimum := lo.MinBy(result, func(a Result, b Result) bool { return cmp.Compare(a.cost, b.cost) != 0 })
-	fmt.Println("RESULT:", result.cost.String())
-
 	return result.cost
 }
 
+// This is ridiculously bad, but at the end of the day, it boils down to Cramer's rule
+// The ideal algorithm check the two values with the formula, then tests if they are whole numbers
+// Also the big.Ints are absolutely not necessary
 func step(machine Machine) Result {
 	dig1 := new(big.Int).Sub(
 		new(big.Int).Mul(new(big.Int).Set(machine.button1.y), machine.prize.x),
@@ -91,9 +115,14 @@ func step(machine Machine) Result {
 	}
 
 	bpr := new(big.Int).Div(new(big.Int).Set(dig1), dig2)
-	apr := new(big.Int).Div(
-		new(big.Int).Sub(new(big.Int).Set(machine.prize.x), new(big.Int).Mul(new(big.Int).Set(machine.button2.x), bpr)),
-		machine.button1.x)
+
+	aprl := new(big.Int).Sub(new(big.Int).Set(machine.prize.x), new(big.Int).Mul(new(big.Int).Set(machine.button2.x), bpr))
+	if new(big.Int).Mod(aprl, machine.button1.x).Int64() != 0 {
+		zero := new(big.Int).SetInt64(0)
+		return Result{false, zero, zero, zero}
+	}
+
+	apr := new(big.Int).Div(aprl, machine.button1.x)
 
 	c1 := new(big.Int).Mul(new(big.Int).Set(apr), new(big.Int).SetInt64(3))
 	c2 := new(big.Int).Mul(new(big.Int).Set(bpr), new(big.Int).SetInt64(1))

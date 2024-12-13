@@ -2,9 +2,7 @@ package main
 
 import (
 	"bufio"
-	"cmp"
 	"fmt"
-	"github.com/samber/lo"
 	"os"
 )
 
@@ -58,30 +56,50 @@ func main() {
 }
 
 func simulate(machine Machine) int {
-	channel := make(chan []Result)
-	go step(machine, channel)
+	result := step(machine)
+	//minimum := lo.MinBy(result, func(a Result, b Result) bool { return cmp.Compare(a.cost, b.cost) != 0 })
+	fmt.Println("RESULT:", result)
 
-	result := <-channel
-	minimum := lo.MinBy(result, func(a Result, b Result) bool { return cmp.Compare(a.cost, b.cost) != 0 })
-	fmt.Println("LEN:", len(result), "MIN:", minimum)
-
-	return minimum.cost
+	return result.cost
 }
 
-func step(machine Machine, channel chan []Result) {
-	results := make([]Result, 0)
+func step(machine Machine) Result {
+	dig1 := machine.button1.y*machine.prize.x - machine.button1.x*machine.prize.y
+	dig2 := machine.button1.y*machine.button2.x - machine.button1.x*machine.button2.y
 
-	for i := 0; i < machine.prize.x; i++ {
-		for j := 0; j < machine.prize.y; j++ {
-			v1 := i*machine.button1.x + j*machine.button2.x
-			v2 := i*machine.button1.y + j*machine.button2.y
-			if v1 == machine.prize.x && v2 == machine.prize.y {
-				results = append(results, Result{true, i, j, i*3 + j*1})
-			}
-		}
+	test1 := dig1 % dig2
+	if test1 != 0 {
+		return Result{false, 0, 0, 0}
 	}
 
-	channel <- results
+	bpr := dig1 / dig2
+	apr := (machine.prize.x - machine.button2.x*bpr) / machine.button1.x
+
+	return Result{true, apr, bpr, 3*apr + 1*bpr}
+
+	//axval = machine.button1.x, movement of button 1 in x
+	//ayval = machine.button1.y, movement of button 1 in y
+	//bxval = machine.button2.x, movement of button 2 in x
+	//byval = machine.button2.y, movement of button 2 in y
+	//apr = number of times button 1 is pressed
+	//bpr = number of times button 2 is pressed
+	//pricex = machine.prize.x, x coordinate of prize
+	//pricey = machine.prize.y, y coordinate of prize
+
+	//axval * apr + bxval * bpr = pricex
+	//ayval * apr + byval * bpr = pricey
+	//apr = (pricex - bxval * bpr) / axval
+
+	//ayval * ((pricex - bxval * bpr) / axval) + byval * bpr = pricey
+	//ayval * (pricex - bxval * bpr) + axval * byval * bpr = axval * pricey
+	//ayval * pricex - ayval * bxval * bpr + axval * byval * bpr = axval * pricey
+	//ayval * pricex - (ayval * bxval + axval * byval) * bpr = axval * pricey
+	//-(ayval * bxval + axval * byval) * bpr = ayval * pricex - axval * pricey
+
+	//machine.button1.x*a * (machine.prize.y - machine.button2.y*b) / machine.button1.y + machine.button2.x*b = machine.prize.x
+	//machine.button1.x*a * (machine.prize.y - machine.button2.y*b) + machine.button2.x*b*machine.button1.y = machine.prize.x*machine.button1.y
+	//machine.button1.x*a * machine.prize.y - machine.button1.x*a * machine.button2.y*b + machine.button2.x*b*machine.button1.y = machine.prize.x*machine.button1.y
+	//machine.button1.x*a * machine.prize.y - (machine.button1.x*a
 }
 
 func check(machine Machine, i, j int, channel chan Result) {

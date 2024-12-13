@@ -3,11 +3,12 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/big"
 	"os"
 )
 
 type Coordinate struct {
-	x, y int
+	x, y *big.Int
 }
 
 type Machine struct {
@@ -16,7 +17,7 @@ type Machine struct {
 
 type Result struct {
 	reached              bool
-	press1, press2, cost int
+	press1, press2, cost *big.Int
 }
 
 func main() {
@@ -40,42 +41,65 @@ func main() {
 		fmt.Sscanf(line2, "Button B: X+%d, Y+%d", &bx, &by)
 		fmt.Sscanf(line3, "Prize: X=%d, Y=%d", &tx, &ty)
 
-		machine := Machine{Coordinate{ax, ay}, Coordinate{bx, by}, Coordinate{tx, ty}}
-		machines = append(machines, machine)
+		machine := Machine{
+			Coordinate{
+				new(big.Int).SetInt64(int64(ax)),
+				new(big.Int).SetInt64(int64(ay))},
+			Coordinate{
+				new(big.Int).SetInt64(int64(bx)),
+				new(big.Int).SetInt64(int64(by))},
+			Coordinate{
+				new(big.Int).SetInt64(int64(tx)),
+				new(big.Int).SetInt64(int64(ty))},
+		}
 
+		machines = append(machines, machine)
 		scanner.Text() //Throw away empty line
 	}
 
-	question1 := 0
+	question1 := new(big.Int).SetInt64(0)
 	for _, machine := range machines {
 		//fmt.Println(machine)
-		question1 += simulate(machine)
+		result := simulate(machine)
+		question1.Add(question1, result)
 	}
 
 	fmt.Println("Question 1:", question1)
 }
 
-func simulate(machine Machine) int {
+func simulate(machine Machine) *big.Int {
 	result := step(machine)
 	//minimum := lo.MinBy(result, func(a Result, b Result) bool { return cmp.Compare(a.cost, b.cost) != 0 })
-	fmt.Println("RESULT:", result)
+	fmt.Println("RESULT:", result.cost.String())
 
 	return result.cost
 }
 
 func step(machine Machine) Result {
-	dig1 := machine.button1.y*machine.prize.x - machine.button1.x*machine.prize.y
-	dig2 := machine.button1.y*machine.button2.x - machine.button1.x*machine.button2.y
+	dig1 := new(big.Int).Sub(
+		new(big.Int).Mul(new(big.Int).Set(machine.button1.y), machine.prize.x),
+		new(big.Int).Mul(new(big.Int).Set(machine.button1.x), machine.prize.y))
 
-	test1 := dig1 % dig2
+	dig2 := new(big.Int).Sub(
+		new(big.Int).Mul(new(big.Int).Set(machine.button1.y), machine.button2.x),
+		new(big.Int).Mul(new(big.Int).Set(machine.button1.x), machine.button2.y))
+
+	test1 := new(big.Int).Mod(new(big.Int).Set(dig1), dig2).Int64()
 	if test1 != 0 {
-		return Result{false, 0, 0, 0}
+		zero := new(big.Int).SetInt64(0)
+		return Result{false, zero, zero, zero}
 	}
 
-	bpr := dig1 / dig2
-	apr := (machine.prize.x - machine.button2.x*bpr) / machine.button1.x
+	bpr := new(big.Int).Div(new(big.Int).Set(dig1), dig2)
+	apr := new(big.Int).Div(
+		new(big.Int).Sub(new(big.Int).Set(machine.prize.x), new(big.Int).Mul(new(big.Int).Set(machine.button2.x), bpr)),
+		machine.button1.x)
 
-	return Result{true, apr, bpr, 3*apr + 1*bpr}
+	c1 := new(big.Int).Mul(new(big.Int).Set(apr), new(big.Int).SetInt64(3))
+	c2 := new(big.Int).Mul(new(big.Int).Set(bpr), new(big.Int).SetInt64(1))
+	sm := new(big.Int).Add(c1, c2)
+
+	return Result{true, apr, bpr, sm}
 
 	//axval = machine.button1.x, movement of button 1 in x
 	//ayval = machine.button1.y, movement of button 1 in y

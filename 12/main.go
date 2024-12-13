@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/samber/lo"
 	"os"
-	"slices"
 )
 
 type Coord struct {
@@ -47,7 +46,7 @@ func main() {
 			letter := plot[j][i]
 			area, perimeter, fence := calculate(letter, plot, visited, i, j, width, height)
 			contour := draw(fence, width, height)
-			length := walk(contour)
+			length := corners(contour)
 
 			question1 += area * perimeter
 			question2 += area * length
@@ -87,35 +86,15 @@ func calculate(letter string, plot [][]string, visited [][]bool, x, y, width, he
 	fence := []Coord{}
 	if tx < 0 || tx >= width || ty < 0 || ty >= height || plot[ty][tx] != letter {
 		curr_perimeter++
-		fence = append(fence, Coord{tx, ty})
 	}
 	if rx < 0 || rx >= width || ry < 0 || ry >= height || plot[ry][rx] != letter {
 		curr_perimeter++
-		fence = append(fence, Coord{rx, ry})
 	}
 	if bx < 0 || bx >= width || by < 0 || by >= height || plot[by][bx] != letter {
 		curr_perimeter++
-		fence = append(fence, Coord{bx, by})
 	}
 	if lx < 0 || lx >= width || ly < 0 || ly >= height || plot[ly][lx] != letter {
 		curr_perimeter++
-		fence = append(fence, Coord{lx, ly})
-	}
-
-	if slices.Contains(fence, Coord{tx, ty}) && slices.Contains(fence, Coord{rx, ry}) {
-		fence = append(fence, Coord{x + 1, y - 1})
-	}
-
-	if slices.Contains(fence, Coord{rx, ry}) && slices.Contains(fence, Coord{bx, by}) {
-		fence = append(fence, Coord{x + 1, y + 1})
-	}
-
-	if slices.Contains(fence, Coord{bx, by}) && slices.Contains(fence, Coord{lx, ly}) {
-		fence = append(fence, Coord{x - 1, y + 1})
-	}
-
-	if slices.Contains(fence, Coord{lx, ly}) && slices.Contains(fence, Coord{tx, ty}) {
-		fence = append(fence, Coord{x - 1, y - 1})
 	}
 
 	a1, p1, f1 := calculate(letter, plot, visited, x+1, y, width, height)
@@ -123,6 +102,7 @@ func calculate(letter string, plot [][]string, visited [][]bool, x, y, width, he
 	a3, p3, f3 := calculate(letter, plot, visited, x, y+1, width, height)
 	a4, p4, f4 := calculate(letter, plot, visited, x, y-1, width, height)
 
+	fence = append(fence, Coord{x, y})
 	fence = append(fence, f1...)
 	fence = append(fence, f2...)
 	fence = append(fence, f3...)
@@ -134,11 +114,11 @@ func calculate(letter string, plot [][]string, visited [][]bool, x, y, width, he
 func draw(fence []Coord, width, height int) [][]string {
 	result := [][]string{}
 
-	for j := 0; j < height+4; j++ {
+	for j := 0; j < height+10; j++ {
 		line := []string{}
 
-		for i := 0; i < width+4; i++ {
-			contains := lo.ContainsBy(fence, func(coord Coord) bool { return i == coord.x+2 && j == coord.y+2 })
+		for i := 0; i < width+10; i++ {
+			contains := lo.ContainsBy(fence, func(coord Coord) bool { return i == coord.x+5 && j == coord.y+5 })
 			if contains {
 				line = append(line, "*")
 			} else {
@@ -160,85 +140,41 @@ func draw(fence []Coord, width, height int) [][]string {
 	return result
 }
 
-func walk(contour [][]string) int {
-	length := 0
+// Let's assume this piece of code has never happened
+func corners(contour [][]string) int {
+	count := 0
 	for j := 0; j < len(contour); j++ {
 		for i := 0; i < len(contour[j]); i++ {
 			if contour[j][i] == "*" {
-				length += line(contour, i, j)
-				i = 0
-				j = 0
-				break
+				if contour[j-1][i] == " " && contour[j][i-1] == " " {
+					count++
+				}
+				if contour[j-1][i] == " " && contour[j][i+1] == " " {
+					count++
+				}
+				if contour[j+1][i] == " " && contour[j][i-1] == " " {
+					count++
+				}
+				if contour[j+1][i] == " " && contour[j][i+1] == " " {
+					count++
+				}
+
+				if contour[j+1][i] == "*" && contour[j][i+1] == "*" && contour[j+1][i+1] == " " {
+					count++
+				}
+				if contour[j-1][i] == "*" && contour[j][i+1] == "*" && contour[j-1][i+1] == " " {
+					count++
+				}
+				if contour[j+1][i] == "*" && contour[j][i-1] == "*" && contour[j+1][i-1] == " " {
+					count++
+				}
+				if contour[j-1][i] == "*" && contour[j][i-1] == "*" && contour[j-1][i-1] == " " {
+					count++
+				}
 			}
 		}
 	}
 
-	return length
-}
-
-func line(contour [][]string, sx, sy int) int {
-
-	direction := Coord{0, 0}
-	if valid(contour, sx+1, sy) {
-		direction = Coord{1, 0}
-	}
-	if valid(contour, sx-1, sy) {
-		direction = Coord{-1, 0}
-	}
-	if valid(contour, sx, sy+1) {
-		direction = Coord{0, 1}
-	}
-	if valid(contour, sx, sy-1) {
-		direction = Coord{0, -1}
-	}
-
-	length := 0
-	for true {
-		if contour[sy][sx] == "_" {
-			break
-		}
-
-		contour[sy][sx] = "_"
-		nx := sx + direction.x
-		ny := sy + direction.y
-
-		if valid(contour, nx, ny) {
-			sx += direction.x
-			sy += direction.y
-			continue
-		}
-
-		rdirection := Coord{direction.y, -direction.x}
-		ldirection := Coord{-direction.y, direction.x}
-		if valid(contour, sx+rdirection.x, sy+rdirection.y) {
-			direction = rdirection
-		}
-		if valid(contour, sx+ldirection.x, sy+ldirection.y) {
-			direction = ldirection
-		}
-
-		sx += direction.x
-		sy += direction.y
-
-		length++
-	}
-
-	/*for j := 0; j < len(contour); j++ {
-		for i := 0; i < len(contour[j]); i++ {
-			fmt.Print(contour[j][i])
-		}
-
-		fmt.Println()
-	}
-	fmt.Println(length)*/
-
-	if length > 1 {
-		return length + 1
-	} else {
-		return 0
-	}
-}
-
-func valid(contour [][]string, x, y int) bool {
-	return x >= 0 && x < len(contour[0]) && y >= 0 && y < len(contour) && contour[y][x] == "*" || contour[y][x] == "_"
+	fmt.Println("COUNT", count)
+	return count
 }

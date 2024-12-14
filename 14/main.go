@@ -31,6 +31,7 @@ func main() {
 	}
 
 	width, height := 101, 103
+	//width, height := 11, 7
 	time := 100
 	for time > 0 {
 		for i := 0; i < len(robots); i++ {
@@ -60,12 +61,43 @@ func main() {
 	}
 
 	xmiddle, ymiddle := (width-1)/2, (height-1)/2
-	question1 := 0
+	quad1, quad2, quad3, quad4 := 0, 0, 0, 0
 	for _, robot := range robots {
-		if robot.position.x != xmiddle || robot.position.y != ymiddle {
-			question1++
+		if robot.position.x < xmiddle && robot.position.y < ymiddle {
+			quad1++
+		}
+		if robot.position.x > xmiddle && robot.position.y < ymiddle {
+			quad2++
+		}
+		if robot.position.x < xmiddle && robot.position.y > ymiddle {
+			quad3++
+		}
+		if robot.position.x > xmiddle && robot.position.y > ymiddle {
+			quad4++
 		}
 	}
+
+	for j := 0; j < height; j++ {
+		for i := 0; i < width; i++ {
+			found := false
+			for _, robot := range robots {
+				if robot.position.x == i && robot.position.y == j {
+					found = true
+					break
+				}
+			}
+
+			if found {
+				fmt.Print("#")
+			} else {
+				fmt.Print(".")
+			}
+		}
+
+		fmt.Println()
+	}
+
+	question1 := quad1 * quad2 * quad3 * quad4
 
 	fmt.Println("Question 1:", question1)
 }
